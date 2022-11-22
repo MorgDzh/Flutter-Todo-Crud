@@ -44,12 +44,16 @@ class _TodoListPageState extends State<TodoListPage> {
                 subtitle: Text(item['description']),
                 trailing: PopupMenuButton(
                   onSelected: (value) => {
-                    if (value == "edit") {
-                      // Open edit page
-                    } else if (value == "delete") {
-                      // Delete and remove the item 
-                      deleteById(id)
-                    }
+                    if (value == "edit")
+                      {
+                        // Open edit page
+                        navigateToEditPage(item)
+                      }
+                    else if (value == "delete")
+                      {
+                        // Delete and remove the item
+                        deleteById(id)
+                      }
                   },
                   itemBuilder: (context) {
                     return [
@@ -74,18 +78,26 @@ class _TodoListPageState extends State<TodoListPage> {
     );
   }
 
-  void navigateToEditPage() {
+  Future<void> navigateToEditPage(Map item) async {
     final route = MaterialPageRoute(
-      builder: (context) => AddTodoPage(),
+      builder: (context) => AddTodoPage(todo: item),
     );
-    Navigator.push(context, route);
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    fetchTodo();
   }
 
-  void navigateToAddPage() {
+  Future<void> navigateToAddPage() async{
     final route = MaterialPageRoute(
       builder: (context) => AddTodoPage(),
     );
-    Navigator.push(context, route);
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    fetchTodo();
   }
 
   Future<void> deleteById(String id) async {
@@ -94,16 +106,16 @@ class _TodoListPageState extends State<TodoListPage> {
     final uri = Uri.parse(url);
     final response = await http.delete(uri);
     if (response.statusCode == 200) {
-    // Remove item from the list
-    final filtered = items.where((element) => element['_id'] != id).toList();
-    setState(() {
-      items = filtered;
-    });  
+      // Remove item from the list
+      final filtered = items.where((element) => element['_id'] != id).toList();
+      setState(() {
+        items = filtered;
+      });
     } else {
-      // Show error 
+      // Show error
       showErrorMessage("Deletion Failed");
     }
-  } 
+  }
 
   Future<void> fetchTodo() async {
     final url = 'https://api.nstack.in/v1/todos?page=1&limit=10';
